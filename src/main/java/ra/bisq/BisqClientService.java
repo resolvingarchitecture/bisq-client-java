@@ -22,7 +22,6 @@ public final class BisqClientService extends BaseService {
     public static final String OPERATION_CREATE_WALLET = "CREATE_WALLET";
     public static final String OPERATION_CHECK_WALLET_BALANCE = "CHECK_WALLET_BALANCE";
     public static final String OPERATION_WITHDRAWAL_FROM_WALLET = "WITHDRAWAL_FROM_WALLET";
-    public static final String OPERATION_CHECK_EXCHANGE_RATES = "CHECK_EXCHANGE_RATES";
     public static final String OPERATION_SUBMIT_BUY_OFFER = "SUBMIT_BUY_OFFER";
     public static final String OPERATION_SUBMIT_SELL_OFFER = "SUBMIT_SELL_OFFER";
     public static final String OPERATION_FUNDS_VERIFIED = "FUNDS_VERIFIED";
@@ -51,10 +50,6 @@ public final class BisqClientService extends BaseService {
                 break;
             }
             case OPERATION_WITHDRAWAL_FROM_WALLET: {
-
-                break;
-            }
-            case OPERATION_CHECK_EXCHANGE_RATES: {
 
                 break;
             }
@@ -98,10 +93,8 @@ public final class BisqClientService extends BaseService {
         if(taskRunner==null) {
             taskRunner = new TaskRunner(2, 2);
             taskRunner.setPeriodicity(1000L); // Default check every second
-            ExchangeRateChecker exchangeRateChecker = new ExchangeRateChecker(this, taskRunner);
-            exchangeRateChecker.setPeriodicity(30 * 60 * 1000L); // Check rates every 30 minutes
-            taskRunner.addTask(exchangeRateChecker);
             BisqNodeStatusChecker bisqNodeStatusChecker = new BisqNodeStatusChecker(this, taskRunner);
+
         }
 
         taskRunnerThread = new Thread(taskRunner);
