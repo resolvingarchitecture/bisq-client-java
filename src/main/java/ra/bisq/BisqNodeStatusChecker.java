@@ -5,7 +5,7 @@ import ra.util.tasks.TaskRunner;
 
 public class BisqNodeStatusChecker extends BaseTask {
 
-    private BisqClientService service;
+    private final BisqClientService service;
 
     public BisqNodeStatusChecker(BisqClientService service, TaskRunner taskRunner) {
         super(BisqNodeStatusChecker.class.getSimpleName(), taskRunner);
@@ -15,6 +15,24 @@ public class BisqNodeStatusChecker extends BaseTask {
     @Override
     public Boolean execute() {
         // Send Requests to determine status of Bisq node
+        switch (service.getMode()) {
+            case Local: {
+
+                break;
+            }
+            case Remote: {
+
+                break;
+            }
+            case Embedded: {
+
+                break;
+            }
+            default: {
+                // Unknown
+                
+            }
+        }
 
         return null;
     }

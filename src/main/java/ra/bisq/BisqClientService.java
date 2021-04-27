@@ -19,6 +19,8 @@ public final class BisqClientService extends BaseService {
 
     private static final Logger LOG = Logger.getLogger(BisqClientService.class.getName());
 
+    public enum Mode {Unknown, Local, Remote, Embedded}
+
     public static final String OPERATION_CREATE_WALLET = "CREATE_WALLET";
     public static final String OPERATION_CHECK_WALLET_BALANCE = "CHECK_WALLET_BALANCE";
     public static final String OPERATION_WITHDRAWAL_FROM_WALLET = "WITHDRAWAL_FROM_WALLET";
@@ -29,11 +31,16 @@ public final class BisqClientService extends BaseService {
 
     private Thread taskRunnerThread;
     private TaskRunner taskRunner;
+    private Mode mode = Mode.Unknown;
 
     public BisqClientService() {}
 
     public BisqClientService(MessageProducer messageProducer, ServiceStatusObserver observer) {
         super(messageProducer, observer);
+    }
+
+    public Mode getMode() {
+        return mode;
     }
 
     @Override
@@ -42,31 +49,31 @@ public final class BisqClientService extends BaseService {
         Route r = e.getRoute();
         switch(r.getOperation()) {
             case OPERATION_CREATE_WALLET: {
-
+                LOG.warning("Create Wallet not yet implemented.");
                 break;
             }
             case OPERATION_CHECK_WALLET_BALANCE: {
-
+                LOG.warning("Check Wallet Balance not yet implemented.");
                 break;
             }
             case OPERATION_WITHDRAWAL_FROM_WALLET: {
-
+                LOG.warning("Withdrawal from Wallet not yet implemented.");
                 break;
             }
             case OPERATION_SUBMIT_BUY_OFFER: {
-
+                LOG.warning("Submit Buy Offer not yet implemented.");
                 break;
             }
             case OPERATION_SUBMIT_SELL_OFFER: {
-
+                LOG.warning("Submit Sell Offer not yet implemented.");
                 break;
             }
             case OPERATION_FUNDS_VERIFIED: {
-
+                LOG.warning("Funds Verified not yet implemented.");
                 break;
             }
             case OPERATION_BITCOIN_RECEIVED: {
-
+                LOG.warning("Bitcon Received not yet implemented.");
                 break;
             }
             default: {
@@ -90,17 +97,21 @@ public final class BisqClientService extends BaseService {
 
         updateStatus(ServiceStatus.STARTING);
 
-        if(taskRunner==null) {
-            taskRunner = new TaskRunner(2, 2);
-            taskRunner.setPeriodicity(1000L); // Default check every second
-            BisqNodeStatusChecker bisqNodeStatusChecker = new BisqNodeStatusChecker(this, taskRunner);
-
+        if(config.get("ra.bisq.mode")!=null) {
+            mode = Mode.valueOf(config.getProperty("ra.bisq.mode"));
         }
 
-        taskRunnerThread = new Thread(taskRunner);
-        taskRunnerThread.setDaemon(true);
-        taskRunnerThread.setName("BisqClientService-TaskRunnerThread");
-        taskRunnerThread.start();
+//        if(taskRunner==null) {
+//            taskRunner = new TaskRunner(2, 2);
+//            taskRunner.setPeriodicity(1000L); // Default check every second
+//            BisqNodeStatusChecker bisqNodeStatusChecker = new BisqNodeStatusChecker(this, taskRunner);
+//
+//        }
+//
+//        taskRunnerThread = new Thread(taskRunner);
+//        taskRunnerThread.setDaemon(true);
+//        taskRunnerThread.setName("BisqClientService-TaskRunnerThread");
+//        taskRunnerThread.start();
 
         updateStatus(ServiceStatus.RUNNING);
 
