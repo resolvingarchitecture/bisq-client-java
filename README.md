@@ -10,7 +10,7 @@ this is too complicated. A simpler method for interacting with Bisq is needed.
 This service aims to provide that simpler method. Quickness of exchange is preferred over making a
 profit from the exchange by taking the lowest offers available up to thresholds set by the end user.
 When no available offers exist within a selected threshold (default is <=20% above/below market),
-an offer is created. Threshold can be changed by the end user.
+an offer is created. Threshold can be changed by the end user on a per-request basis.
 
 ## Roadmap
 * Initial support will embed Bisq as today the HTTP JSON API is not workable.
