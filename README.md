@@ -1,16 +1,37 @@
 # Bisq Client (Java)
 The Bisq Client Service acts as a routable service to/from Bisq.
 
-* Will support local, embedded, and remote instances as modes.
-* Initial support expects a local instance, which can be installed from https://bisq.network
-* A future version will support an embedded version and a remote version using its Tor address.
-* Once all three modes are supported, the service on startup will see if a preferred mode is set
-  and if so, will start in that mode. If that mode fails, it try the other two modes and use either if
-  successful. If no preferred mode is set, if a local instance is installed, it will use that; if
-  not and a remote Tor address is provided, it will use the remote instance, otherwise it will start
-  up the embedded instance.
+## Summary
+Bisq is a non-custodial decentralized Bitcoin exchange for both national and crypto. It is primarily
+designed for traders in that each person making a trade sets an offer price or selects an offer price.
+For people who just wish to exchange a currency for another and not greatly price sensitive,
+this is too complicated. A simpler method for interacting with Bisq is needed.
 
-## Local
+This service aims to provide that simpler method. Quickness of exchange is preferred over making a
+profit from the exchange by taking the lowest offers available up to thresholds set by the end user.
+When no available offers exist within a selected threshold, an offer is created.
+Three settings are provided though for the end user to select how quickly they wish for the exchange
+to take place:
+
+1. 0% - Market Only
+2. 20% - Quick (default)
+3. 40% - Max
+
+
+
+## Roadmap
+* Initial support will embed Bisq as today the HTTP JSON API is not workable.
+* A future version will support a local instance and a remote instance using 1M5 (for lightweight clients).
+
+## Modes
+Will support local, embedded, and remote instances as modes.
+Once all three modes are supported, the service on startup will see if a preferred mode is set
+and if so, will start in that mode. If that mode fails, it will try the other two modes and use either if
+successful. If no preferred mode is set, if a local instance is installed, it will use that; if
+not, and a remote Tor address is provided, it will use the remote instance, otherwise it will start
+up the embedded instance.
+
+### Local
 The local version is best for traders who are familiar with Bisq so they're able to confirm the
 underlying service and able to act on any issues that may arise.
 
@@ -18,10 +39,10 @@ underlying service and able to act on any issues that may arise.
 * Communicates with Bisq node via http on localhost (requires HTTP Service).
 * Bisq uses Tor to connect to Bitcoin network if local Bitcoin node is not present.
 
-## Remote
+### Remote
 A remote version is best for light-weight clients such as mobile phones, RaspberryPis, etc.
 
-## Embedded
+### Embedded
 An embedded version will be available once the APIs are reliably flushed out. It will be
 best for non-traders who are less price-sensitive and perhaps less technical.
 
