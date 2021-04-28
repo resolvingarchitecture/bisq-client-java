@@ -29,7 +29,7 @@ The embedded version runs Bisq core as a headless daemon within the 1M5 OS proce
 
 * Embedded Bisq uses Tor to connect to Bisq and Bitcoin networks.
 * Future versions will support routing around Tor blocks using 1M5 protocols.
-* Most performant method as no wire protocol is required.
+* Most performant method of accessing Bisq as no wire protocol is required.
 * May soak up much memory, e.g. we have seen 6Gb of RAM usage with Bisq over time.
 
 ### Remote
