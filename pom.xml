@@ -5,7 +5,7 @@
 
     <groupId>resolvingarchitecture</groupId>
 	<artifactId>bisq-client</artifactId>
-	<version>1.6.2</version>
+	<version>1.6.2.0</version>
 
 	<packaging>jar</packaging>
 

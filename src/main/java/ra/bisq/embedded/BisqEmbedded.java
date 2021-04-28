@@ -1,7 +1,7 @@
 package ra.bisq.embedded;
 
+import bisq.core.api.CoreApi;
 import bisq.core.app.BisqHeadlessApp;
-import bisq.core.trade.TradeManager;
 import ra.bisq.Bisq;
 import ra.common.Envelope;
 
@@ -11,7 +11,7 @@ public class BisqEmbedded extends BisqHeadlessApp implements Bisq {
 
     private Properties config;
     private BisqHeadlessApp app;
-    private TradeManager tradeManager;
+    private CoreApi coreApi;
 
     public BisqEmbedded(Properties config) {
         this.config = config;
@@ -20,7 +20,7 @@ public class BisqEmbedded extends BisqHeadlessApp implements Bisq {
     @Override
     public boolean start() {
         startApplication();
-        tradeManager = injector.getInstance(TradeManager.class);
+        coreApi = injector.getInstance(CoreApi.class);
         return true;
     }
 
@@ -56,13 +56,13 @@ public class BisqEmbedded extends BisqHeadlessApp implements Bisq {
 
     @Override
     public boolean shutdown() {
-
+        app.stop();
         return true;
     }
 
     @Override
     public boolean gracefulShutdown() {
-
+        app.stop();
         return true;
     }
 }
