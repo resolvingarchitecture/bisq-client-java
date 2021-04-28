@@ -9,15 +9,8 @@ this is too complicated. A simpler method for interacting with Bisq is needed.
 
 This service aims to provide that simpler method. Quickness of exchange is preferred over making a
 profit from the exchange by taking the lowest offers available up to thresholds set by the end user.
-When no available offers exist within a selected threshold, an offer is created.
-Three settings are provided though for the end user to select how quickly they wish for the exchange
-to take place:
-
-1. 0% - Market Only
-2. 20% - Quick (default)
-3. 40% - Max
-
-
+When no available offers exist within a selected threshold (default is <=20% above/below market),
+an offer is created. Threshold can be changed by the end user.
 
 ## Roadmap
 * Initial support will embed Bisq as today the HTTP JSON API is not workable.
@@ -31,6 +24,18 @@ successful. If no preferred mode is set, if a local instance is installed, it wi
 not, and a remote Tor address is provided, it will use the remote instance, otherwise it will start
 up the embedded instance.
 
+### Embedded
+The embedded version runs Bisq core as a headless daemon within the 1M5 OS process.
+
+* Embedded Bisq uses Tor to connect to Bisq and Bitcoin networks.
+* Future versions will support routing around Tor blocks using 1M5 protocols.
+* Most performant method as no wire protocol is required.
+* May soak up much memory, e.g. we have seen 6Gb of RAM usage with Bisq over time.
+
+### Remote
+A remote version is best for light-weight clients such as mobile phones, RaspberryPis, etc.
+This will allow access to a remote Bisq instance through 1M5 or directly through Tor.
+
 ### Local
 The local version is best for traders who are familiar with Bisq so they're able to confirm the
 underlying service and able to act on any issues that may arise.
@@ -38,11 +43,3 @@ underlying service and able to act on any issues that may arise.
 * If local Bisq instance unable to reach the Bisq network via Tor, a notification will be published.
 * Communicates with Bisq node via http on localhost (requires HTTP Service).
 * Bisq uses Tor to connect to Bitcoin network if local Bitcoin node is not present.
-
-### Remote
-A remote version is best for light-weight clients such as mobile phones, RaspberryPis, etc.
-
-### Embedded
-An embedded version will be available once the APIs are reliably flushed out. It will be
-best for non-traders who are less price-sensitive and perhaps less technical.
-
