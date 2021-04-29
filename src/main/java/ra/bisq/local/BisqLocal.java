@@ -1,15 +1,18 @@
 package ra.bisq.local;
 
 import ra.bisq.Bisq;
+import ra.bisq.BisqClientService;
 import ra.common.Envelope;
 
 import java.util.Properties;
 
 public class BisqLocal implements Bisq {
 
+    private BisqClientService service;
     private Properties config;
 
-    public BisqLocal(Properties config) {
+    public BisqLocal(BisqClientService service, Properties config) {
+        this.service = service;
         this.config = config;
     }
 

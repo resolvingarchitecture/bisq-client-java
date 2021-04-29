@@ -1,15 +1,18 @@
 package ra.bisq.remote;
 
 import ra.bisq.Bisq;
+import ra.bisq.BisqClientService;
 import ra.common.Envelope;
 
 import java.util.Properties;
 
 public class BisqRemote implements Bisq {
 
+    private BisqClientService service;
     private Properties config;
 
-    public BisqRemote(Properties config) {
+    public BisqRemote(BisqClientService service, Properties config) {
+        this.service = service;
         this.config = config;
     }
 

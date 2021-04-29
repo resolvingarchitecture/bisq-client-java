@@ -82,17 +82,17 @@ public final class BisqClientService extends BaseService {
         switch (mode) {
             case Remote: {
                 LOG.info("Remote initializing...");
-                bisq = new BisqRemote(config);
+                bisq = new BisqRemote(this, config);
                 break;
             }
             case Local: {
                 LOG.info("Local initializing...");
-                bisq = new BisqLocal(config);
+                bisq = new BisqLocal(this, config);
                 break;
             }
             default: {
                 LOG.info("Embedded initializing...");
-                bisq = new BisqEmbedded(config);
+                bisq = new BisqEmbedded(this, config);
             }
         }
 
