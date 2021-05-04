@@ -28,7 +28,7 @@ import ra.bisq.Bisq;
 import ra.bisq.BisqClientService;
 import ra.common.Envelope;
 
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.logging.Logger;
@@ -92,7 +92,11 @@ public class BisqEmbedded extends BisqExecutable implements Bisq, GracefulShutDo
 
     @Override
     public boolean start() {
-        execute(null);
+        List<String> params = new ArrayList<>();
+        for(Map.Entry<Object,Object> nvp : properties.entrySet()) {
+            params.add(nvp.getKey()+"="+nvp.getValue());
+        }
+        execute((String[])params.toArray());
         return started;
     }
 
