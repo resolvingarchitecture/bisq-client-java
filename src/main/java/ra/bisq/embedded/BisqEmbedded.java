@@ -92,11 +92,7 @@ public class BisqEmbedded extends BisqExecutable implements Bisq, GracefulShutDo
 
     @Override
     public boolean start() {
-        List<String> params = new ArrayList<>();
-        for(Map.Entry<Object,Object> nvp : properties.entrySet()) {
-            params.add(nvp.getKey()+"="+nvp.getValue());
-        }
-        execute((String[])params.toArray());
+        execute(new String[]{});
         return started;
     }
 
