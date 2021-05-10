@@ -64,6 +64,8 @@ public final class BisqClientService extends BaseService {
     public boolean start(Properties p) {
         LOG.info("Starting...");
         updateStatus(ServiceStatus.INITIALIZING);
+        if(!super.start(p))
+            return false;
         LOG.info("Loading properties...");
         try {
             // Load environment variables first
