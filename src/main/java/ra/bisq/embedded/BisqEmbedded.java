@@ -100,7 +100,8 @@ public class BisqEmbedded extends BisqExecutable implements Bisq, GracefulShutDo
     @Override
     public void execute(String[] args) {
         try {
-            this.config = new Config(appName, Utilities.getUserDataDir(), args);
+            // When using Embedded Bisq, use Bisq Service directory as home
+            this.config = new Config(appName, service.getServiceDirectory(), args);
             if (this.config.helpRequested) {
                 this.config.printHelp(System.out, new BisqHelpFormatter(this.fullName, this.scriptName, this.version));
                 return;
