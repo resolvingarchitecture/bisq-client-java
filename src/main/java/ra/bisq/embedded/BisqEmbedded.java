@@ -27,13 +27,13 @@ import bisq.network.p2p.P2PService;
 import ra.bisq.Bisq;
 import ra.bisq.BisqClientService;
 import ra.common.Envelope;
+import ra.util.AppThread;
 
 import java.util.*;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 import java.util.logging.Logger;
 
-public class BisqEmbedded extends BisqExecutable implements Bisq, GracefulShutDownHandler, BisqSetup.BisqSetupListener {
+public class BisqEmbedded extends BisqExecutable implements Bisq, GracefulShutDownHandler, BisqSetup.BisqSetupListener, Runnable {
 
     private static final Logger LOG = Logger.getLogger(BisqEmbedded.class.getName());
 
@@ -50,6 +50,7 @@ public class BisqEmbedded extends BisqExecutable implements Bisq, GracefulShutDo
     private boolean isShutdownInProgress = false;
     private boolean hasDowngraded;
     private ResultHandler shutdownHandler;
+    private AppThread bisqThread;
 
     private CoreApi coreApi;
 
@@ -112,17 +113,16 @@ public class BisqEmbedded extends BisqExecutable implements Bisq, GracefulShutDo
             var4.printStackTrace(System.err);
             return;
         }
-
+        started = true;
         this.doExecute();
     }
 
     @Override
     protected void doExecute() {
-        super.doExecute();
-        coreApi = injector.getInstance(CoreApi.class);
-        checkWalletBalance(null);
-        started = true;
-        keepRunning();
+        // Launch into separate thread to allow starting thread to return while ensuring
+        // this service can run as a daemon separately
+        bisqThread = new AppThread(this, "Bisq-Service-Thread", true);
+        bisqThread.start();
     }
 
     @Override
@@ -140,6 +140,7 @@ public class BisqEmbedded extends BisqExecutable implements Bisq, GracefulShutDo
     protected void onApplicationLaunched() {
         super.onApplicationLaunched();
         headlessApp.setGracefulShutDownHandler(this);
+        coreApi = injector.getInstance(CoreApi.class);
     }
 
     @Override
@@ -251,7 +252,9 @@ public class BisqEmbedded extends BisqExecutable implements Bisq, GracefulShutDo
         gracefulShutdown();
     }
 
-    private void keepRunning() {
+    @Override
+    public void run() {
+        super.doExecute();
         while (true) {
             try {
                 Thread.sleep(Long.MAX_VALUE);
