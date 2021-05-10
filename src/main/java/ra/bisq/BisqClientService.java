@@ -45,7 +45,6 @@ public final class BisqClientService extends BaseService {
 
     @Override
     public void handleDocument(Envelope e) {
-        super.handleDocument(e);
         Route r = e.getRoute();
         switch(r.getOperation()) {
             case OPERATION_CREATE_WALLET: { bisq.createWallet(e);break; }
