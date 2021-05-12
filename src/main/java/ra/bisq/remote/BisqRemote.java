@@ -6,6 +6,18 @@ import ra.common.Envelope;
 
 import java.util.Properties;
 
+/**
+ * Forwards all API requests to an external
+ * Bisq instance set in configuration via
+ * an expected Network Manager and Tor.
+ * When Tor gets blocked, I2P is used
+ * as a relay.
+ *
+ * Requirements:
+ *      ra.networkmanager.NetworkManagerService
+ *      ra.tor.TorClientService
+ *      ra.i2p.I2PService
+ */
 public class BisqRemote implements Bisq {
 
     private BisqClientService service;
