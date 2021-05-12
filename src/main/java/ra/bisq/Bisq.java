@@ -3,7 +3,7 @@ package ra.bisq;
 import ra.common.Envelope;
 
 public interface Bisq {
-    // All User Actions to API Methods
+    // Simplified API Methods
     /**
      * Provide old and new passwords from user
      * for the Bisq wallet.
