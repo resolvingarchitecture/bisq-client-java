@@ -24,6 +24,9 @@ import bisq.core.support.dispute.arbitration.arbitrator.ArbitratorManager;
 import bisq.core.trade.statistics.TradeStatisticsManager;
 import bisq.core.trade.txproof.xmr.XmrTxProofService;
 import bisq.network.p2p.P2PService;
+import com.google.common.util.concurrent.FutureCallback;
+import org.bitcoinj.core.Transaction;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import ra.bisq.Bisq;
 import ra.bisq.BisqClientService;
 import ra.common.Envelope;
@@ -60,19 +63,11 @@ public class BisqEmbedded extends BisqExecutable implements Bisq, GracefulShutDo
         this.properties = properties;
     }
 
-    public void unlockWallet(Envelope envelope) {
-        String password = (String)envelope.getValue("password");
-        if(password==null || password.isEmpty()) {
-            LOG.warning("No password");
-            return;
-        }
-        long timeoutSeconds = 30;
-        coreApi.unlockWallet(password, timeoutSeconds);
-    }
-
     @Override
-    public void lockWallet(Envelope envelope) {
-        coreApi.lockWallet();
+    public void setWalletPassword(Envelope envelope) {
+        String password = (String)envelope.getValue("password");
+        String newPassword = (String)envelope.getValue("newPassword");
+        coreApi.setWalletPassword(password, newPassword);
     }
 
     @Override
@@ -84,7 +79,20 @@ public class BisqEmbedded extends BisqExecutable implements Bisq, GracefulShutDo
 
     @Override
     public void withdrawal(Envelope envelope) {
+        String address = (String)envelope.getValue("address");
+        String amount = (String)envelope.getValue("amount");
+        String txFeeRate = (String)envelope.getValue("txFeeRate");
+        coreApi.sendBtc(address, amount, txFeeRate, "", new FutureCallback<>() {
+            @Override
+            public void onSuccess(@Nullable Transaction tx) {
 
+            }
+
+            @Override
+            public void onFailure(Throwable throwable) {
+
+            }
+        });
     }
 
     @Override

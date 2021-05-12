@@ -22,12 +22,7 @@ public class BisqRemote implements Bisq {
     }
 
     @Override
-    public void lockWallet(Envelope envelope) {
-
-    }
-
-    @Override
-    public void unlockWallet(Envelope envelope) {
+    public void setWalletPassword(Envelope envelope) {
 
     }
 
