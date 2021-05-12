@@ -36,6 +36,12 @@ import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
+/**
+ * Embedded instance of Bisq.
+ * Pulls in Core library with dependencies
+ * and launches in separate background thread.
+ * All api calls are through Bisq CoreApi.
+ */
 public class BisqEmbedded extends BisqExecutable implements Bisq, GracefulShutDownHandler, BisqSetup.BisqSetupListener, Runnable {
 
     private static final Logger LOG = Logger.getLogger(BisqEmbedded.class.getName());
@@ -80,9 +86,9 @@ public class BisqEmbedded extends BisqExecutable implements Bisq, GracefulShutDo
     @Override
     public void withdrawal(Envelope envelope) {
         String address = (String)envelope.getValue("address");
-        String amount = (String)envelope.getValue("amount");
-        String txFeeRate = (String)envelope.getValue("txFeeRate");
-        coreApi.sendBtc(address, amount, txFeeRate, "", new FutureCallback<>() {
+        String amountSats = (String)envelope.getValue("amount");
+        String txFeeRate = ""; // Leave empty so tx fee is determined in-flight
+        coreApi.sendBtc(address, amountSats, txFeeRate, null, new FutureCallback<>() {
             @Override
             public void onSuccess(@Nullable Transaction tx) {
 
