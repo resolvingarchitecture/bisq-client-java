@@ -60,14 +60,25 @@ public class BisqEmbedded extends BisqExecutable implements Bisq, GracefulShutDo
         this.properties = properties;
     }
 
-    @Override
-    public void createWallet(Envelope envelope) {
+    public void unlockWallet(Envelope envelope) {
+        String password = (String)envelope.getValue("password");
+        if(password==null || password.isEmpty()) {
+            LOG.warning("No password");
+            return;
+        }
+        long timeoutSeconds = 30;
+        coreApi.unlockWallet(password, timeoutSeconds);
+    }
 
+    @Override
+    public void lockWallet(Envelope envelope) {
+        coreApi.lockWallet();
     }
 
     @Override
     public void checkWalletBalance(Envelope envelope) {
         BalancesInfo info = coreApi.getBalances("btc");
+        envelope.addNVP("balance", info);
         LOG.info("Available BTC Balance: "+info.getBtc().getAvailableBalance());
     }
 

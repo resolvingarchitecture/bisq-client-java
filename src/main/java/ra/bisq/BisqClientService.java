@@ -23,7 +23,8 @@ public final class BisqClientService extends BaseService {
 
     public enum Mode {Local, Remote, Embedded}
 
-    public static final String OPERATION_CREATE_WALLET = "CREATE_WALLET";
+    public static final String OPERATION_LOCK_WALLET = "LOCK_WALLET";
+    public static final String OPERATION_UNLOCK_WALLET = "UNLOCK_WALLET";
     public static final String OPERATION_CHECK_WALLET_BALANCE = "CHECK_WALLET_BALANCE";
     public static final String OPERATION_WITHDRAWAL_FROM_WALLET = "WITHDRAWAL_FROM_WALLET";
     public static final String OPERATION_EXCHANGE = "EXCHANGE";
@@ -47,7 +48,8 @@ public final class BisqClientService extends BaseService {
     public void handleDocument(Envelope e) {
         Route r = e.getRoute();
         switch(r.getOperation()) {
-            case OPERATION_CREATE_WALLET: { bisq.createWallet(e);break; }
+            case OPERATION_LOCK_WALLET: { bisq.lockWallet(e);break; }
+            case OPERATION_UNLOCK_WALLET: { bisq.unlockWallet(e);break; }
             case OPERATION_CHECK_WALLET_BALANCE: { bisq.checkWalletBalance(e);break; }
             case OPERATION_WITHDRAWAL_FROM_WALLET: { bisq.withdrawal(e);break; }
             case OPERATION_EXCHANGE: { bisq.exchange(e);break; }

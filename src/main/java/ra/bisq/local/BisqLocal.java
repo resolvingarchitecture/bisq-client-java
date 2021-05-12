@@ -22,7 +22,12 @@ public class BisqLocal implements Bisq {
     }
 
     @Override
-    public void createWallet(Envelope envelope) {
+    public void lockWallet(Envelope envelope) {
+
+    }
+
+    @Override
+    public void unlockWallet(Envelope envelope) {
 
     }
 

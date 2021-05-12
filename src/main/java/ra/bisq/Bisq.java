@@ -4,7 +4,8 @@ import ra.common.Envelope;
 
 public interface Bisq {
     boolean start();
-    void createWallet(Envelope envelope);
+    void lockWallet(Envelope envelope);
+    void unlockWallet(Envelope envelope);
     void checkWalletBalance(Envelope envelope);
     void withdrawal(Envelope envelope);
     void exchange(Envelope envelope);
