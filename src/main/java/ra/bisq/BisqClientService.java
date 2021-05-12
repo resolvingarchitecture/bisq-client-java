@@ -26,6 +26,7 @@ public final class BisqClientService extends BaseService {
     public static final String OPERATION_SET_WALLET_PASSWORD = "SET_WALLET_PASSWORD";
     public static final String OPERATION_CHECK_WALLET_BALANCE = "CHECK_WALLET_BALANCE";
     public static final String OPERATION_WITHDRAWAL_FROM_WALLET = "WITHDRAWAL_FROM_WALLET";
+    public static final String OPERATION_GET_WALLET_ADDRESS = "GET_WALLET_ADDRESS";
     public static final String OPERATION_EXCHANGE = "EXCHANGE";
     public static final String OPERATION_FUNDS_VERIFIED = "FUNDS_VERIFIED";
     public static final String OPERATION_CRYPTO_RECEIVED = "CRYPTO_RECEIVED";
@@ -49,6 +50,7 @@ public final class BisqClientService extends BaseService {
         switch(r.getOperation()) {
             case OPERATION_SET_WALLET_PASSWORD: { bisq.setWalletPassword(e);break; }
             case OPERATION_CHECK_WALLET_BALANCE: { bisq.checkWalletBalance(e);break; }
+            case OPERATION_GET_WALLET_ADDRESS: { bisq.getWalletAddress(e);break; }
             case OPERATION_WITHDRAWAL_FROM_WALLET: { bisq.withdrawal(e);break; }
             case OPERATION_EXCHANGE: { bisq.exchange(e);break; }
             case OPERATION_FUNDS_VERIFIED: { bisq.fundsVerified(e);break; }

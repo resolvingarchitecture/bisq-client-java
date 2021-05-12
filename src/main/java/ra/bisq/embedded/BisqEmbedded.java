@@ -79,8 +79,13 @@ public class BisqEmbedded extends BisqExecutable implements Bisq, GracefulShutDo
     @Override
     public void checkWalletBalance(Envelope envelope) {
         BalancesInfo info = coreApi.getBalances("btc");
-        envelope.addNVP("balance", info);
+        envelope.addNVP("balance", info.getBtc().getTotalAvailableBalance());
         LOG.info("Available BTC Balance: "+info.getBtc().getAvailableBalance());
+    }
+
+    @Override
+    public void getWalletAddress(Envelope envelope) {
+
     }
 
     @Override

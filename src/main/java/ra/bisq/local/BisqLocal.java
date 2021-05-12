@@ -38,6 +38,11 @@ public class BisqLocal implements Bisq {
     }
 
     @Override
+    public void getWalletAddress(Envelope envelope) {
+
+    }
+
+    @Override
     public void withdrawal(Envelope envelope) {
 
     }
