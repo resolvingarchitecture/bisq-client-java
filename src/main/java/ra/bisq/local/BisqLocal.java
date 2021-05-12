@@ -6,6 +6,12 @@ import ra.common.Envelope;
 
 import java.util.Properties;
 
+/**
+ * Forwards all API calls to the local
+ * Bisq http server on localhost.
+ *
+ * Requirements: ra.http.HTTPService
+ */
 public class BisqLocal implements Bisq {
 
     private BisqClientService service;
