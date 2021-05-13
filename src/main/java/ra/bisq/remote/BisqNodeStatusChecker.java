@@ -4,6 +4,9 @@ import ra.bisq.BisqClientService;
 import ra.util.tasks.BaseTask;
 import ra.util.tasks.TaskRunner;
 
+/**
+ * Checks status of remote node at randomized intervals.
+ */
 public class BisqNodeStatusChecker extends BaseTask {
 
     private final BisqClientService service;

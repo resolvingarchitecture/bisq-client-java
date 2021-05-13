@@ -23,11 +23,6 @@ public class BisqLocal implements Bisq {
     }
 
     @Override
-    public boolean start() {
-        return false;
-    }
-
-    @Override
     public void setWalletPassword(Envelope envelope) {
 
     }
@@ -60,6 +55,11 @@ public class BisqLocal implements Bisq {
     @Override
     public void cryptoReceived(Envelope envelope) {
 
+    }
+
+    @Override
+    public boolean start() {
+        return false;
     }
 
     @Override

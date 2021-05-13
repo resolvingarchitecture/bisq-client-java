@@ -1,5 +1,6 @@
 package ra.bisq;
 
+import bisq.core.payment.payload.PaymentMethod;
 import ra.bisq.embedded.BisqEmbedded;
 import ra.bisq.local.BisqLocal;
 import ra.bisq.remote.BisqRemote;
@@ -33,6 +34,8 @@ public final class BisqClientService extends BaseService {
 
     private Mode mode = Mode.Embedded; // default
     private Bisq bisq;
+
+    public Map<String,List<String>> supportedCurrenciesAndMethods = new HashMap<>();
 
     public BisqClientService() {}
 
@@ -98,6 +101,9 @@ public final class BisqClientService extends BaseService {
                 bisq = new BisqEmbedded(this, config);
             }
         }
+
+        supportedCurrenciesAndMethods.put("USD",Arrays.asList(PaymentMethod.CLEAR_X_CHANGE_ID));
+        supportedCurrenciesAndMethods.put("LBP",Arrays.asList(PaymentMethod.F2F_ID));
 
         if(!bisq.start()) {
             LOG.severe("failed to start.");

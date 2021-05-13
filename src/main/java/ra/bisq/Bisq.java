@@ -44,13 +44,13 @@ public interface Bisq {
     void exchange(Envelope envelope);
 
     /**
-     * Funds verified received.
+     * Funds verified.
      * @param envelope
      */
     void fundsVerified(Envelope envelope);
 
     /**
-     * Crypto verified received.
+     * Crypto received.
      * @param envelope
      */
     void cryptoReceived(Envelope envelope);
