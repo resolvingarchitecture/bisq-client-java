@@ -8,7 +8,8 @@ import java.util.Properties;
 
 /**
  * Forwards all API calls to the local
- * Bisq http server on localhost.
+ * Bisq http server on localhost via the
+ * GRPC API.
  *
  * Requirements: ra.http.HTTPService
  */

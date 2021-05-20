@@ -20,10 +20,11 @@ import bisq.core.dao.DaoSetup;
 import bisq.core.dao.node.full.RpcService;
 import bisq.core.offer.Offer;
 import bisq.core.offer.OpenOfferManager;
-import bisq.core.offer.availability.OfferAvailabilityModel;
+import bisq.core.payment.PaymentAccount;
 import bisq.core.payment.payload.PaymentMethod;
 import bisq.core.provider.price.PriceFeedService;
 import bisq.core.support.dispute.arbitration.arbitrator.ArbitratorManager;
+import bisq.core.trade.Trade;
 import bisq.core.trade.statistics.TradeStatisticsManager;
 import bisq.core.trade.txproof.xmr.XmrTxProofService;
 import bisq.network.p2p.P2PService;
@@ -32,11 +33,13 @@ import org.bitcoinj.core.Transaction;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import ra.bisq.Bisq;
 import ra.bisq.BisqClientService;
+import ra.bisq.Constants;
 import ra.common.Envelope;
 import ra.util.AppThread;
 
 import java.util.*;
 import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 /**
@@ -50,12 +53,13 @@ public class BisqEmbedded extends BisqExecutable implements Bisq, GracefulShutDo
     private static final Logger LOG = Logger.getLogger(BisqEmbedded.class.getName());
 
     private BisqClientService service;
-    private Properties properties;
+    private final Properties properties;
 
     private final String fullName = "Bisq Client Service Daemon";
     private final String scriptName = "bisqds";
     private final String appName = "Bisq-Service";
     private final String version = Version.VERSION;
+    private final String feeAddress = "B12LksWgq7wnqe4243Fej1xk5A7N3Pn3YoC";
 
     private BisqHeadlessApp headlessApp;
     private boolean started = false;
@@ -63,12 +67,12 @@ public class BisqEmbedded extends BisqExecutable implements Bisq, GracefulShutDo
     private boolean hasDowngraded;
     private ResultHandler shutdownHandler;
     private AppThread bisqThread;
-
-    private String password;
     private Long timeoutSeconds;
-    private final String feeAddress = "B12LksWgq7wnqe4243Fej1xk5A7N3Pn3YoC";
-    private BalancesInfo balances;
     private CoreApi coreApi;
+
+    // Logged-In User
+    private String password;
+    private BalancesInfo balances;
 
     public BisqEmbedded(BisqClientService service, Properties properties) {
         super("Bisq Client Service Daemon", "bisqds", "Bisq-Service", Version.VERSION);
@@ -86,7 +90,7 @@ public class BisqEmbedded extends BisqExecutable implements Bisq, GracefulShutDo
 
     @Override
     public void checkWalletBalance(Envelope envelope) {
-        BalancesInfo balances = coreApi.getBalances("btc");
+        BalancesInfo balances = coreApi.getBalances(Constants.CURRENCY_CODE_BTC);
         this.balances = balances;
         envelope.addNVP("totalAvailableBalance", balances.getBtc().getTotalAvailableBalance());
         LOG.info("Available BTC Balance: "+balances.getBtc().getAvailableBalance());
@@ -120,28 +124,58 @@ public class BisqEmbedded extends BisqExecutable implements Bisq, GracefulShutDo
     @Override
     public void exchange(Envelope envelope) {
         // Unpack request
-        String direction = (String)envelope.getValue("direction");
+        String direction = (String)envelope.getValue(Constants.DIRECTION);
         if(direction==null || direction.isEmpty()) { envelope.addErrorMessage("direction nvp is required");return; }
-        if(!direction.equals("BUY") && !direction.equals("SELL")) { envelope.addErrorMessage("direction must be either BUY or SELL");return; }
+        if(!direction.equals(Constants.DIRECTION_BUY) && !direction.equals(Constants.DIRECTION_SELL)) { envelope.addErrorMessage("direction must be either BUY or SELL");return; }
 
-        String currency = (String)envelope.getValue("currency");
+        String currency = (String)envelope.getValue(Constants.CURRENCY);
         if(currency==null || currency.isEmpty()) { envelope.addErrorMessage("currencyPair nvp is required");return; }
         if(!service.supportedCurrenciesAndMethods.containsKey(currency)) { envelope.addErrorMessage(currency+" not supported. Please use one of: "+service.supportedCurrenciesAndMethods.keySet().toString());return; }
 
-        String methodId = (String)envelope.getValue("method");
+        String methodId = (String)envelope.getValue(Constants.METHOD);
         if(methodId==null || methodId.isEmpty()) { envelope.addErrorMessage("method is required");return; }
         if(!service.supportedCurrenciesAndMethods.get(currency).contains(methodId)) { envelope.addErrorMessage(methodId+" not supported with currency "+currency+". Choose one of: "+service.supportedCurrenciesAndMethods.get(currency).toString());return; }
         PaymentMethod paymentMethod = PaymentMethod.getPaymentMethodById(methodId);
 
-        String amountStr = (String)envelope.getValue("amount");
+        String amountStr = (String)envelope.getValue(Constants.AMOUNT);
         if(amountStr==null || amountStr.isEmpty()) { envelope.addErrorMessage("amount is required");return; }
         Long amount = Long.parseLong(amountStr);
 
+        // Select Payment Account
+        PaymentAccount paymentAccount = null;
+        for(PaymentAccount acct : coreApi.getPaymentAccounts()) {
+            if(acct.getPaymentMethod().getId().equals(methodId)) {
+                paymentAccount = acct;
+            }
+        }
+        if(paymentAccount==null) { envelope.addErrorMessage("No Payment Account found for method: "+methodId);return; }
+
         // Verify enough BSQ available
-        balances = coreApi.getBalances("btc");
+        balances = coreApi.getBalances("bsq");
         long bsqBalance = balances.getBsq().getAvailableConfirmedBalance();
 
-        // If not, get BSQ
+        // If not, get BSQ, take fee
+        double buyerSecurityDepositAsPercent = 0.1; // TODO: Lookup
+        long triggerPrice = 0L; // TODO: determine
+        String bsqPaymentAcctId = ""; // TODO: Lookup
+        coreApi.createAnPlaceOffer(Constants.CURRENCY_CODE_BSQ,
+                Constants.DIRECTION_SELL,
+                "0.000035",
+                true,
+                0.00,
+                15_000_000L,
+                7_500_000L,
+                buyerSecurityDepositAsPercent,
+                triggerPrice,
+                bsqPaymentAcctId,
+                Constants.CURRENCY_CODE_BSQ,
+                new Consumer<Offer>() {
+                    @Override
+                    public void accept(Offer offer) {
+
+                    }
+                }
+        );
 
         // Look up offer
         List<Offer> offers = coreApi.getOffers(direction, currency);
@@ -150,15 +184,25 @@ public class BisqEmbedded extends BisqExecutable implements Bisq, GracefulShutDo
                 && offer.getCurrencyCode().equals(currency)
                 && offer.getPaymentMethod().equals(paymentMethod)
                 && offer.getAmount().value == amount) {
-                // If found, make sure it's still valid
-//                offer.checkOfferAvailability();
-//                coreApi.takeOffer();
+                // Unlock wallet
+                coreApi.unlockWallet(password, timeoutSeconds);
+                // If found, make sure it's still valid and if so, take it.
+                coreApi.takeOffer(offer.getId(), paymentAccount.getId(), currency, new Consumer<Trade>() {
+
+                    @Override
+                    public void accept(Trade trade) {
+
+                    }
+                }, new ErrorMessageHandler() {
+                    @Override
+                    public void handleErrorMessage(String s) {
+
+                    }
+                });
             }
         }
-
-        // If Offer is valid, take it
-
         // If no Offer found or no longer valid, create an Offer and wait for it to be taken
+
 
         // Once Offer is taken, commit funds/crypto
 
@@ -191,12 +235,11 @@ public class BisqEmbedded extends BisqExecutable implements Bisq, GracefulShutDo
                 this.config.printHelp(System.out, new BisqHelpFormatter(this.fullName, this.scriptName, this.version));
                 return;
             }
-        } catch (ConfigException var3) {
-            System.err.println("error: " + var3.getMessage());
+        } catch (ConfigException e) {
+            LOG.severe(e.getLocalizedMessage());
             return;
-        } catch (Throwable var4) {
-            System.err.println("fault: An unexpected error occurred. Please file a report at https://bisq.network/issues");
-            var4.printStackTrace(System.err);
+        } catch (Throwable e) {
+            LOG.severe("An unexpected error occurred. Please file a report at https://github.com/resolvingarchitecture/bisq-client-java/issues.\n\t"+e.getLocalizedMessage());
             return;
         }
         started = true;
@@ -341,8 +384,6 @@ public class BisqEmbedded extends BisqExecutable implements Bisq, GracefulShutDo
     @Override
     public void run() {
         super.doExecute();
-        // Now setup environment
-
         while (true) {
             try {
                 Thread.sleep(Long.MAX_VALUE);
