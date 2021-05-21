@@ -89,7 +89,7 @@ public class BisqEmbedded extends BisqExecutable implements Bisq, GracefulShutDo
 
     @Override
     public void checkWalletBalance(Envelope envelope) {
-        BalancesInfo balances = coreApi.getBalances(Constants.CURRENCY_CODE_BTC);
+        BalancesInfo balances = coreApi.getBalances(Bisq.CURRENCY_CODE_BTC);
         this.balances = balances;
         envelope.addNVP("totalAvailableBalance", balances.getBtc().getTotalAvailableBalance());
         LOG.info("Available BTC Balance: "+balances.getBtc().getAvailableBalance());
@@ -129,20 +129,20 @@ public class BisqEmbedded extends BisqExecutable implements Bisq, GracefulShutDo
     @Override
     public void exchange(Envelope envelope) {
         // Unpack request
-        String direction = (String)envelope.getValue(Constants.DIRECTION);
+        String direction = (String)envelope.getValue(Bisq.DIRECTION);
         if(direction==null || direction.isEmpty()) { envelope.addErrorMessage("direction nvp is required");return; }
-        if(!direction.equals(Constants.DIRECTION_BUY) && !direction.equals(Constants.DIRECTION_SELL)) { envelope.addErrorMessage("direction must be either BUY or SELL");return; }
+        if(!direction.equals(Bisq.DIRECTION_BUY) && !direction.equals(Bisq.DIRECTION_SELL)) { envelope.addErrorMessage("direction must be either BUY or SELL");return; }
 
-        String currency = (String)envelope.getValue(Constants.CURRENCY);
+        String currency = (String)envelope.getValue(Bisq.CURRENCY);
         if(currency==null || currency.isEmpty()) { envelope.addErrorMessage("currencyPair nvp is required");return; }
         if(!service.supportedCurrenciesAndMethods.containsKey(currency)) { envelope.addErrorMessage(currency+" not supported. Please use one of: "+service.supportedCurrenciesAndMethods.keySet().toString());return; }
 
-        String methodId = (String)envelope.getValue(Constants.METHOD);
+        String methodId = (String)envelope.getValue(Bisq.METHOD);
         if(methodId==null || methodId.isEmpty()) { envelope.addErrorMessage("method is required");return; }
         if(!service.supportedCurrenciesAndMethods.get(currency).contains(methodId)) { envelope.addErrorMessage(methodId+" not supported with currency "+currency+". Choose one of: "+service.supportedCurrenciesAndMethods.get(currency).toString());return; }
         PaymentMethod paymentMethod = PaymentMethod.getPaymentMethodById(methodId);
 
-        String amountStr = (String)envelope.getValue(Constants.AMOUNT);
+        String amountStr = (String)envelope.getValue(Bisq.AMOUNT);
         if(amountStr==null || amountStr.isEmpty()) { envelope.addErrorMessage("amount is required");return; }
         Long amount = Long.parseLong(amountStr);
 
@@ -164,7 +164,7 @@ public class BisqEmbedded extends BisqExecutable implements Bisq, GracefulShutDo
                 && offer.getPaymentMethod().equals(paymentMethod)
                 && offer.getAmount().value == amount) {
                 // Verify enough BSQ Available
-                balances = coreApi.getBalances(Constants.CURRENCY_CODE_BSQ);
+                balances = coreApi.getBalances(Bisq.CURRENCY_CODE_BSQ);
                 if(balances.getBsq().getAvailableConfirmedBalance() < minBSQBalance) {
                     // Verify enough BTC available to purchase BSQ
                     if(balances.getBtc().getAvailableBalance() < minBTCBalance) {
@@ -174,8 +174,8 @@ public class BisqEmbedded extends BisqExecutable implements Bisq, GracefulShutDo
                     double buyerSecurityDepositAsPercent = 0.1; // TODO: Lookup
                     long triggerPrice = 0L; // TODO: determine
                     String bsqPaymentAcctId = ""; // TODO: Lookup
-                    coreApi.createAnPlaceOffer(Constants.CURRENCY_CODE_BSQ,
-                            Constants.DIRECTION_SELL,
+                    coreApi.createAnPlaceOffer(Bisq.CURRENCY_CODE_BSQ,
+                            Bisq.DIRECTION_SELL,
                             "0.000035",
                             true,
                             0.00,
@@ -184,7 +184,7 @@ public class BisqEmbedded extends BisqExecutable implements Bisq, GracefulShutDo
                             buyerSecurityDepositAsPercent,
                             triggerPrice,
                             bsqPaymentAcctId,
-                            Constants.CURRENCY_CODE_BSQ, new AcceptOffer(this, coreApi));
+                            Bisq.CURRENCY_CODE_BSQ, new AcceptOffer(this, coreApi));
                     offerStarted = true;
                 }
             }

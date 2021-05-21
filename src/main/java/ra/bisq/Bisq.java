@@ -3,6 +3,19 @@ package ra.bisq;
 import ra.common.Envelope;
 
 public interface Bisq {
+
+    String CURRENCY = "currency";
+    String CURRENCY_CODE_BTC = "btc";
+    String CURRENCY_CODE_BSQ = "bsq";
+
+    String DIRECTION = "direction";
+    String DIRECTION_BUY = "BUY";
+    String DIRECTION_SELL = "SELL";
+
+    String METHOD = "method";
+
+    String AMOUNT = "amount";
+
     // Simplified API Methods
     /**
      * Provide old and new passwords from user

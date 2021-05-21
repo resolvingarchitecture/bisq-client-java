@@ -83,6 +83,9 @@ public final class BisqClientService extends BaseService {
 
         if(config.get("ra.bisq.mode")!=null) {
             mode = Mode.valueOf(config.getProperty("ra.bisq.mode"));
+        } else {
+            // TODO: Check for a local instance and if present, set to local
+
         }
 
         switch (mode) {
