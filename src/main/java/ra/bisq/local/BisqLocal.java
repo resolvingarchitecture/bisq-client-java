@@ -11,7 +11,8 @@ import java.util.Properties;
  * Bisq http server on localhost via the
  * GRPC API.
  *
- * Requirements: ra.http.HTTPService
+ * No need for ra.http.HTTPService, Bisq
+ * client uses its own http client.
  */
 public class BisqLocal implements Bisq {
 
