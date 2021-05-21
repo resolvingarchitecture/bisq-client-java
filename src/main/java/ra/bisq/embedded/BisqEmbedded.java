@@ -6,7 +6,6 @@ import bisq.common.app.Version;
 import bisq.common.config.BisqHelpFormatter;
 import bisq.common.config.Config;
 import bisq.common.config.ConfigException;
-import bisq.common.handlers.ErrorMessageHandler;
 import bisq.common.handlers.ResultHandler;
 import bisq.common.persistence.PersistenceManager;
 import bisq.common.setup.GracefulShutDownHandler;
@@ -24,16 +23,13 @@ import bisq.core.payment.PaymentAccount;
 import bisq.core.payment.payload.PaymentMethod;
 import bisq.core.provider.price.PriceFeedService;
 import bisq.core.support.dispute.arbitration.arbitrator.ArbitratorManager;
-import bisq.core.trade.Trade;
 import bisq.core.trade.statistics.TradeStatisticsManager;
 import bisq.core.trade.txproof.xmr.XmrTxProofService;
 import bisq.network.p2p.P2PService;
 import com.google.common.util.concurrent.FutureCallback;
 import org.bitcoinj.core.Transaction;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import ra.bisq.Bisq;
-import ra.bisq.BisqClientService;
-import ra.bisq.Constants;
+import ra.bisq.*;
 import ra.common.Envelope;
 import ra.util.AppThread;
 
@@ -161,6 +157,7 @@ public class BisqEmbedded extends BisqExecutable implements Bisq, GracefulShutDo
 
         // Look up offer
         List<Offer> offers = coreApi.getOffers(direction, currency);
+        boolean offerStarted = false;
         for(Offer offer : offers) {
             if(offer.getDirection().name().equals(direction)
                 && offer.getCurrencyCode().equals(currency)
@@ -187,30 +184,14 @@ public class BisqEmbedded extends BisqExecutable implements Bisq, GracefulShutDo
                             buyerSecurityDepositAsPercent,
                             triggerPrice,
                             bsqPaymentAcctId,
-                            Constants.CURRENCY_CODE_BSQ,
-                            new Consumer<Offer>() {
-                                @Override
-                                public void accept(Offer offer) {
-
-                                }
-                            }
-                    );
+                            Constants.CURRENCY_CODE_BSQ, new AcceptOffer(this, coreApi));
+                    offerStarted = true;
                 }
-                // Unlock wallet
-                coreApi.unlockWallet(password, timeoutSeconds);
-                // If found, make sure it's still valid and if so, take it.
-                coreApi.takeOffer(offer.getId(),
-                        paymentAccount.getId(),
-                        currency,
-                        new TradeHandler(this),
-                        new BisqClientErrorMessageHandler(this));
             }
         }
+        if(!offerStarted) {
 
-        // Once Offer is taken, commit funds/crypto
-
-        // Once funds/crypto by other party is completed, complete the exchange
-
+        }
     }
 
     @Override
