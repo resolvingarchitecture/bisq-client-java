@@ -60,6 +60,8 @@ public class BisqEmbedded extends BisqExecutable implements Bisq, GracefulShutDo
     private final String appName = "Bisq-Service";
     private final String version = Version.VERSION;
     private final String feeAddress = "B12LksWgq7wnqe4243Fej1xk5A7N3Pn3YoC";
+    private final long minBSQBalance = 50;
+    private final long minBTCBalance = 100_000L; // 0.001 Bitcoin
 
     private BisqHeadlessApp headlessApp;
     private boolean started = false;
@@ -68,6 +70,7 @@ public class BisqEmbedded extends BisqExecutable implements Bisq, GracefulShutDo
     private ResultHandler shutdownHandler;
     private AppThread bisqThread;
     private Long timeoutSeconds;
+
     private CoreApi coreApi;
 
     // Logged-In User
@@ -121,6 +124,12 @@ public class BisqEmbedded extends BisqExecutable implements Bisq, GracefulShutDo
         coreApi.lockWallet();
     }
 
+    /**
+     * -Unpack Request
+     * -Select Payment Account
+     * -Look for Offer
+     * @param envelope
+     */
     @Override
     public void exchange(Envelope envelope) {
         // Unpack request
@@ -150,33 +159,6 @@ public class BisqEmbedded extends BisqExecutable implements Bisq, GracefulShutDo
         }
         if(paymentAccount==null) { envelope.addErrorMessage("No Payment Account found for method: "+methodId);return; }
 
-        // Verify enough BSQ available
-        balances = coreApi.getBalances("bsq");
-        long bsqBalance = balances.getBsq().getAvailableConfirmedBalance();
-
-        // If not, get BSQ, take fee
-        double buyerSecurityDepositAsPercent = 0.1; // TODO: Lookup
-        long triggerPrice = 0L; // TODO: determine
-        String bsqPaymentAcctId = ""; // TODO: Lookup
-        coreApi.createAnPlaceOffer(Constants.CURRENCY_CODE_BSQ,
-                Constants.DIRECTION_SELL,
-                "0.000035",
-                true,
-                0.00,
-                15_000_000L,
-                7_500_000L,
-                buyerSecurityDepositAsPercent,
-                triggerPrice,
-                bsqPaymentAcctId,
-                Constants.CURRENCY_CODE_BSQ,
-                new Consumer<Offer>() {
-                    @Override
-                    public void accept(Offer offer) {
-
-                    }
-                }
-        );
-
         // Look up offer
         List<Offer> offers = coreApi.getOffers(direction, currency);
         for(Offer offer : offers) {
@@ -184,25 +166,46 @@ public class BisqEmbedded extends BisqExecutable implements Bisq, GracefulShutDo
                 && offer.getCurrencyCode().equals(currency)
                 && offer.getPaymentMethod().equals(paymentMethod)
                 && offer.getAmount().value == amount) {
+                // Verify enough BSQ Available
+                balances = coreApi.getBalances(Constants.CURRENCY_CODE_BSQ);
+                if(balances.getBsq().getAvailableConfirmedBalance() < minBSQBalance) {
+                    // Verify enough BTC available to purchase BSQ
+                    if(balances.getBtc().getAvailableBalance() < minBTCBalance) {
+                        envelope.addErrorMessage("Not enough BTC.");
+                        return;
+                    }
+                    double buyerSecurityDepositAsPercent = 0.1; // TODO: Lookup
+                    long triggerPrice = 0L; // TODO: determine
+                    String bsqPaymentAcctId = ""; // TODO: Lookup
+                    coreApi.createAnPlaceOffer(Constants.CURRENCY_CODE_BSQ,
+                            Constants.DIRECTION_SELL,
+                            "0.000035",
+                            true,
+                            0.00,
+                            15_000_000L,
+                            7_500_000L,
+                            buyerSecurityDepositAsPercent,
+                            triggerPrice,
+                            bsqPaymentAcctId,
+                            Constants.CURRENCY_CODE_BSQ,
+                            new Consumer<Offer>() {
+                                @Override
+                                public void accept(Offer offer) {
+
+                                }
+                            }
+                    );
+                }
                 // Unlock wallet
                 coreApi.unlockWallet(password, timeoutSeconds);
                 // If found, make sure it's still valid and if so, take it.
-                coreApi.takeOffer(offer.getId(), paymentAccount.getId(), currency, new Consumer<Trade>() {
-
-                    @Override
-                    public void accept(Trade trade) {
-
-                    }
-                }, new ErrorMessageHandler() {
-                    @Override
-                    public void handleErrorMessage(String s) {
-
-                    }
-                });
+                coreApi.takeOffer(offer.getId(),
+                        paymentAccount.getId(),
+                        currency,
+                        new TradeHandler(this),
+                        new BisqClientErrorMessageHandler(this));
             }
         }
-        // If no Offer found or no longer valid, create an Offer and wait for it to be taken
-
 
         // Once Offer is taken, commit funds/crypto
 
