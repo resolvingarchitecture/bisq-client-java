@@ -1,7 +1,7 @@
 package ra.bisq;
 
-import ra.util.tasks.BaseTask;
-import ra.util.tasks.TaskRunner;
+import ra.common.tasks.BaseTask;
+import ra.common.tasks.TaskRunner;
 
 public class BisqNodeStatusChecker extends BaseTask {
 
