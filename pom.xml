@@ -5,7 +5,7 @@
 
     <groupId>resolvingarchitecture</groupId>
 	<artifactId>bisq-client</artifactId>
-	<version>1.6.2.4</version>
+	<version>1.8.0</version>
 
 	<packaging>jar</packaging>
 
@@ -16,7 +16,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<java.version>1.11</java.version>
+		<java.version>1.8</java.version>
 	</properties>
 
 	<developers>
@@ -33,15 +33,6 @@
 	</scm>
 
 	<repositories>
-        <repository>
-            <id>central</id>
-            <name>Default Repository</name>
-            <layout>default</layout>
-            <url>https://repo1.maven.org/maven2</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
 		<repository>
 			<id>jitpack.io</id>
 			<url>https://jitpack.io</url>
@@ -53,26 +44,20 @@
 		<dependency>
 			<groupId>resolvingarchitecture</groupId>
 			<artifactId>common</artifactId>
-			<version>1.0.7</version>
+			<version>1.2.0</version>
 		</dependency>
 
         <dependency>
             <groupId>resolvingarchitecture</groupId>
             <artifactId>notification</artifactId>
-            <version>1.0.7</version>
-        </dependency>
-
-        <dependency>
-            <groupId>bisq</groupId>
-            <artifactId>core</artifactId>
-            <version>1.6.2-1m5</version>
+            <version>1.2.0</version>
         </dependency>
 
 		<!-- Test -->
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.12</version>
+			<version>4.13.2</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -106,15 +91,7 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
 					<version>3.8.0</version>
-                    <configuration>
-                        <release>11</release>
-                    </configuration>
 				</plugin>
-                <plugin>
-                    <groupId>com.googlecode.addjars-maven-plugin</groupId>
-                    <artifactId>addjars-maven-plugin</artifactId>
-                    <version>1.0.5</version>
-                </plugin>
 			</plugins>
 		</pluginManagement>
 		<plugins>
