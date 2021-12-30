@@ -1,11 +1,15 @@
-package ra.bisq;
+package ra.bisq.remote;
 
-import ra.common.tasks.BaseTask;
-import ra.common.tasks.TaskRunner;
+import ra.bisq.BisqClientService;
+import ra.util.tasks.BaseTask;
+import ra.util.tasks.TaskRunner;
 
+/**
+ * Checks status of remote node at randomized intervals.
+ */
 public class BisqNodeStatusChecker extends BaseTask {
 
-    private BisqClientService service;
+    private final BisqClientService service;
 
     public BisqNodeStatusChecker(BisqClientService service, TaskRunner taskRunner) {
         super(BisqNodeStatusChecker.class.getSimpleName(), taskRunner);

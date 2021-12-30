@@ -1,13 +1,16 @@
 package ra.bisq;
 
-import ra.common.Config;
+import bisq.core.payment.payload.PaymentMethod;
+import ra.bisq.embedded.BisqEmbedded;
+import ra.bisq.local.BisqLocal;
+import ra.bisq.remote.BisqRemote;
 import ra.common.Envelope;
 import ra.common.messaging.MessageProducer;
 import ra.common.route.Route;
 import ra.common.service.BaseService;
 import ra.common.service.ServiceStatus;
 import ra.common.service.ServiceStatusObserver;
-import ra.common.tasks.TaskRunner;
+import ra.util.Config;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -19,16 +22,20 @@ public final class BisqClientService extends BaseService {
 
     private static final Logger LOG = Logger.getLogger(BisqClientService.class.getName());
 
-    public static final String OPERATION_CREATE_WALLET = "CREATE_WALLET";
+    public enum Mode {Local, Remote, Embedded}
+
+    public static final String OPERATION_SET_WALLET_PASSWORD = "SET_WALLET_PASSWORD";
     public static final String OPERATION_CHECK_WALLET_BALANCE = "CHECK_WALLET_BALANCE";
     public static final String OPERATION_WITHDRAWAL_FROM_WALLET = "WITHDRAWAL_FROM_WALLET";
-    public static final String OPERATION_SUBMIT_BUY_OFFER = "SUBMIT_BUY_OFFER";
-    public static final String OPERATION_SUBMIT_SELL_OFFER = "SUBMIT_SELL_OFFER";
+    public static final String OPERATION_GET_WALLET_ADDRESS = "GET_WALLET_ADDRESS";
+    public static final String OPERATION_EXCHANGE = "EXCHANGE";
     public static final String OPERATION_FUNDS_VERIFIED = "FUNDS_VERIFIED";
-    public static final String OPERATION_BITCOIN_RECEIVED = "BITCOIN_RECEIVED";
+    public static final String OPERATION_CRYPTO_RECEIVED = "CRYPTO_RECEIVED";
 
-    private Thread taskRunnerThread;
-    private TaskRunner taskRunner;
+    private Mode mode = Mode.Embedded; // default
+    private Bisq bisq;
+
+    public Map<String,List<String>> supportedCurrenciesAndMethods = new HashMap<>();
 
     public BisqClientService() {}
 
@@ -36,39 +43,21 @@ public final class BisqClientService extends BaseService {
         super(messageProducer, observer);
     }
 
+    public Mode getMode() {
+        return mode;
+    }
+
     @Override
     public void handleDocument(Envelope e) {
-        super.handleDocument(e);
         Route r = e.getRoute();
         switch(r.getOperation()) {
-            case OPERATION_CREATE_WALLET: {
-
-                break;
-            }
-            case OPERATION_CHECK_WALLET_BALANCE: {
-
-                break;
-            }
-            case OPERATION_WITHDRAWAL_FROM_WALLET: {
-
-                break;
-            }
-            case OPERATION_SUBMIT_BUY_OFFER: {
-
-                break;
-            }
-            case OPERATION_SUBMIT_SELL_OFFER: {
-
-                break;
-            }
-            case OPERATION_FUNDS_VERIFIED: {
-
-                break;
-            }
-            case OPERATION_BITCOIN_RECEIVED: {
-
-                break;
-            }
+            case OPERATION_SET_WALLET_PASSWORD: { bisq.setWalletPassword(e);break; }
+            case OPERATION_CHECK_WALLET_BALANCE: { bisq.checkWalletBalance(e);break; }
+            case OPERATION_GET_WALLET_ADDRESS: { bisq.getWalletAddress(e);break; }
+            case OPERATION_WITHDRAWAL_FROM_WALLET: { bisq.withdrawal(e);break; }
+            case OPERATION_EXCHANGE: { bisq.exchange(e);break; }
+            case OPERATION_FUNDS_VERIFIED: { bisq.fundsVerified(e);break; }
+            case OPERATION_CRYPTO_RECEIVED: { bisq.cryptoReceived(e);break; }
             default: {
                 LOG.warning("Operation ("+r.getOperation()+") not supported. Sending to Dead Letter queue.");
                 deadLetter(e);
@@ -77,9 +66,11 @@ public final class BisqClientService extends BaseService {
     }
 
     public boolean start(Properties p) {
-        LOG.info("Starting Bisq Client Service...");
+        LOG.info("Starting...");
         updateStatus(ServiceStatus.INITIALIZING);
-        LOG.info("Loading Bisq Client properties...");
+        if(!super.start(p))
+            return false;
+        LOG.info("Loading properties...");
         try {
             // Load environment variables first
             config = Config.loadAll(p, "bisq-client.config");
@@ -90,17 +81,37 @@ public final class BisqClientService extends BaseService {
 
         updateStatus(ServiceStatus.STARTING);
 
-        if(taskRunner==null) {
-            taskRunner = new TaskRunner(2, 2);
-            taskRunner.setPeriodicity(1000L); // Default check every second
-            BisqNodeStatusChecker bisqNodeStatusChecker = new BisqNodeStatusChecker(this, taskRunner);
+        if(config.get("ra.bisq.mode")!=null) {
+            mode = Mode.valueOf(config.getProperty("ra.bisq.mode"));
+        } else {
+            // TODO: Check for a local instance and if present, set to local
 
         }
 
-        taskRunnerThread = new Thread(taskRunner);
-        taskRunnerThread.setDaemon(true);
-        taskRunnerThread.setName("BisqClientService-TaskRunnerThread");
-        taskRunnerThread.start();
+        switch (mode) {
+            case Remote: {
+                LOG.info("Remote initializing...");
+                bisq = new BisqRemote(this, config);
+                break;
+            }
+            case Local: {
+                LOG.info("Local initializing...");
+                bisq = new BisqLocal(this, config);
+                break;
+            }
+            default: {
+                LOG.info("Embedded initializing...");
+                bisq = new BisqEmbedded(this, config);
+            }
+        }
+
+        supportedCurrenciesAndMethods.put("USD",Arrays.asList(PaymentMethod.CLEAR_X_CHANGE_ID));
+        supportedCurrenciesAndMethods.put("LBP",Arrays.asList(PaymentMethod.F2F_ID));
+
+        if(!bisq.start()) {
+            LOG.severe("failed to start.");
+            return false;
+        }
 
         updateStatus(ServiceStatus.RUNNING);
 
@@ -119,10 +130,10 @@ public final class BisqClientService extends BaseService {
 
     @Override
     public boolean restart() {
-        LOG.info("Bisq client service soft restart commencing...");
+        LOG.info("restart commencing...");
         if(gracefulShutdown()) {
             start(config);
-            LOG.info("Bisq client service soft restart completed.");
+            LOG.info("restart completed.");
         }
         return true;
     }
@@ -130,20 +141,24 @@ public final class BisqClientService extends BaseService {
     @Override
     public boolean shutdown() {
         updateStatus(ServiceStatus.SHUTTING_DOWN);
-        LOG.info("Bisq client service stopping...");
-
+        LOG.info("stopping...");
+        if(!bisq.shutdown()) {
+            LOG.warning("Failed to shutdown properly.");
+        }
         updateStatus(ServiceStatus.SHUTDOWN);
-        LOG.info("Bisq client service stopped.");
+        LOG.info("Stopped.");
         return true;
     }
 
     @Override
     public boolean gracefulShutdown() {
         updateStatus(ServiceStatus.GRACEFULLY_SHUTTING_DOWN);
-        LOG.info("Bisq client service gracefully stopping...");
-
+        LOG.info("gracefully stopping...");
+        if(!bisq.gracefulShutdown()) {
+            LOG.warning("Failed to gracefully shutdown properly.");
+        }
         updateStatus(ServiceStatus.GRACEFULLY_SHUTDOWN);
-        LOG.info("Bisq client service gracefully stopped.");
+        LOG.info("Gracefully stopped.");
         return true;
     }
 
